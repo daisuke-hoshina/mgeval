@@ -2,13 +2,14 @@
 """utils.py
 Include distance calculation for evaluation metrics
 """
-import sys
-import os
 import glob
 import math
-import sklearn
+import os
+import sys
+
 import numpy as np
-from scipy import stats, integrate
+import sklearn
+from scipy import integrate, stats
 
 
 # Calculate overlap between the two PDF
