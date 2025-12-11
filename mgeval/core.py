@@ -2,13 +2,14 @@
 """core.py
 Include feature extractor and musically informed objective measures.
 """
-import pretty_midi
-import numpy as np
-import sys
-import os
-import midi
 import glob
 import math
+import os
+import sys
+
+import midi
+import numpy as np
+import pretty_midi
 
 
 # feature extractor
@@ -58,7 +59,7 @@ class metrics(object):
         for i in range(0, len(pattern[track_num])):
             if type(pattern[track_num][i]) == midi.events.TimeSignatureEvent:
                 time_sig = pattern[track_num][i].data
-                bar_length = time_sig[0] * resolution * 4 / 2**(time_sig[1])
+                bar_length = time_sig[0] * resolution * 4 // 2**(time_sig[1])
                 if num_bar is None:
                     num_bar = int(round(float(pattern[track_num][-1].tick) / bar_length))
                     used_notes = np.zeros((num_bar, 1))
@@ -75,10 +76,10 @@ class metrics(object):
                     if num_bar is None:
                         num_bar = int(round(float(pattern[track_num][-1].tick) / bar_length))
                         used_notes = np.zeros((num_bar, 1))
-                        used_notes[pattern[track_num][i].tick / bar_length] += 1
+                        used_notes[pattern[track_num][i].tick // bar_length] += 1
                     else:
                         used_notes = np.zeros((num_bar, 1))
-                        used_notes[pattern[track_num][i].tick / bar_length] += 1
+                        used_notes[pattern[track_num][i].tick // bar_length] += 1
                     note_list = []
                     note_list.append(pattern[track_num][i].data[0])
 
@@ -89,7 +90,7 @@ class metrics(object):
                         else:
                             note_list = []
                     note_list.append(pattern[track_num][i].data[0])
-                    idx = pattern[track_num][i].tick / bar_length
+                    idx = pattern[track_num][i].tick // bar_length
                     if idx >= num_bar:
                       continue
                     used_notes[idx] += 1
@@ -138,7 +139,7 @@ class metrics(object):
         for i in range(0, len(pattern[track_num])):
             if type(pattern[track_num][i]) == midi.events.TimeSignatureEvent:
                 time_sig = pattern[track_num][i].data
-                bar_length = time_sig[track_num] * resolution * 4 / 2**(time_sig[1])
+                bar_length = time_sig[track_num] * resolution * 4 // 2**(time_sig[1])
                 if num_bar is None:
                     num_bar = int(round(float(pattern[track_num][-1].tick) / bar_length))
                     used_notes = np.zeros((num_bar, 1))
@@ -153,13 +154,13 @@ class metrics(object):
                     if num_bar is None:
                         num_bar = int(round(float(pattern[track_num][-1].tick) / bar_length))
                         used_notes = np.zeros((num_bar, 1))
-                        used_notes[pattern[track_num][i].tick / bar_length] += 1
+                        used_notes[pattern[track_num][i].tick // bar_length] += 1
                     else:
                         used_notes = np.zeros((num_bar, 1))
-                        used_notes[pattern[track_num][i].tick / bar_length] += 1
+                        used_notes[pattern[track_num][i].tick // bar_length] += 1
 
                 else:
-                    idx = pattern[track_num][i].tick / bar_length
+                    idx = pattern[track_num][i].tick // bar_length
                     if idx >= num_bar:
                       continue
                     used_notes[idx] += 1
@@ -203,7 +204,7 @@ class metrics(object):
             bar_length = 60. / bpm * numer * 4 / deno * 100
             piano_roll = pm_object.instruments[track_num].get_piano_roll(fs=100)
             piano_roll = np.transpose(piano_roll, (1, 0))
-            actual_bar = len(piano_roll) / bar_length
+            actual_bar = float(len(piano_roll)) / bar_length
             num_bar = int(round(actual_bar))
             bar_length = int(round(bar_length))
         else:
@@ -212,7 +213,7 @@ class metrics(object):
             bar_length = 60. / bpm * numer * 4 / deno * 100
             piano_roll = pm_object.instruments[track_num].get_piano_roll(fs=100)
             piano_roll = np.transpose(piano_roll, (1, 0))
-            actual_bar = len(piano_roll) / bar_length
+            actual_bar = float(len(piano_roll)) / bar_length
             bar_length = int(math.ceil(bar_length))
 
         if actual_bar > num_bar:
@@ -264,7 +265,7 @@ class metrics(object):
             return transition_matrix / sum(sum(transition_matrix))
 
         else:
-            print "invalid normalization mode, return unnormalized matrix"
+            print("invalid normalization mode, return unnormalized matrix")
             return transition_matrix
 
     def pitch_range(self, feature):
@@ -354,7 +355,7 @@ class metrics(object):
             for i in range(0, len(pattern[track_num])):
                 if type(pattern[track_num][i]) == midi.events.TimeSignatureEvent:
                     time_sig = pattern[track_num][i].data
-                    bar_length = time_sig[track_num] * resolution * 4 / 2**(time_sig[1])
+                    bar_length = time_sig[track_num] * resolution * 4 // 2**(time_sig[1])
                 elif type(pattern[track_num][i]) == midi.events.NoteOnEvent and pattern[track_num][i].data[1] != 0:
                     if 'time_sig' not in locals():  # set default bar length as 4 beat
                         bar_length = 4 * resolution
@@ -381,7 +382,7 @@ class metrics(object):
             for i in range(0, len(pattern[track_num])):
                 if type(pattern[track_num][i]) == midi.events.TimeSignatureEvent:
                     time_sig = pattern[track_num][i].data
-                    bar_length = time_sig[track_num] * resolution * 4 / 2**(time_sig[1])
+                    bar_length = time_sig[track_num] * resolution * 4 // 2**(time_sig[1])
                 elif type(pattern[track_num][i]) == midi.events.NoteOnEvent and pattern[track_num][i].data[1] != 0:
                     check_previous_off = True
                     if 'time_sig' not in locals():  # set default bar length as 4 beat
@@ -456,7 +457,7 @@ class metrics(object):
             for i in range(0, len(pattern[track_num])):
                 if type(pattern[track_num][i]) == midi.events.TimeSignatureEvent:
                     time_sig = pattern[track_num][i].data
-                    bar_length = time_sig[track_num] * resolution * 4 / 2**(time_sig[1])
+                    bar_length = time_sig[track_num] * resolution * 4 // 2**(time_sig[1])
                 elif type(pattern[track_num][i]) == midi.events.NoteOnEvent and pattern[track_num][i].data[1] != 0:
                     if 'time_sig' not in locals():  # set default bar length as 4 beat
                         bar_length = 4 * resolution
@@ -486,7 +487,7 @@ class metrics(object):
             for i in range(0, len(pattern[track_num])):
                 if type(pattern[track_num][i]) == midi.events.TimeSignatureEvent:
                     time_sig = pattern[track_num][i].data
-                    bar_length = time_sig[track_num] * resolution * 4 / 2**(time_sig[1])
+                    bar_length = time_sig[track_num] * resolution * 4 // 2**(time_sig[1])
                 elif type(pattern[track_num][i]) == midi.events.NoteOnEvent and pattern[track_num][i].data[1] != 0:
                     check_previous_off = True
                     if 'time_sig' not in locals():  # set default bar length as 4 beat
@@ -547,7 +548,7 @@ class metrics(object):
             return transition_matrix / sum(sum(transition_matrix))
 
         else:
-            print "invalid normalization mode, return unnormalized matrix"
+            print("invalid normalization mode, return unnormalized matrix")
             return transition_matrix
 
     # def chord_dependency(self, feature, bar_chord, bpm=120, num_bar=None, track_num=1):
