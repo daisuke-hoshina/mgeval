@@ -79,6 +79,13 @@ single_arg_metrics = (
     , 'pitch_range'
     ])
 
+track1_metrics = [
+    'total_used_note',
+    'avg_pitch_shift',
+    'note_length_hist',
+    'note_length_transition_matrix'
+]
+
 set1_eval = copy.deepcopy(evalset)
 set2_eval = copy.deepcopy(evalset)
 
@@ -97,6 +104,8 @@ for _set, _set_eval in sets:
                 tmp = evaluator(feature, 1, args.num_bar)
             elif metric in bar_pm_metrics:
                 tmp = evaluator(feature, 0, args.num_bar)
+            elif metric in track1_metrics:
+                tmp = evaluator(feature, 1)
             else:
                 tmp = evaluator(feature, 0)
             _set_eval[metric][i] = tmp
