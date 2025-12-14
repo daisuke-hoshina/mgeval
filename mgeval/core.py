@@ -56,50 +56,50 @@ class metrics(object):
         pattern = feature['midi_pattern']
         pattern.make_ticks_abs()
         resolution = pattern.resolution
+        note_list = []
+        used_notes = None
+        bar_length = None
         for i in range(0, len(pattern[track_num])):
             if type(pattern[track_num][i]) == midi.events.TimeSignatureEvent:
                 time_sig = pattern[track_num][i].data
                 bar_length = time_sig[0] * resolution * 4 // 2**(time_sig[1])
                 if num_bar is None:
                     num_bar = int(round(float(pattern[track_num][-1].tick) / bar_length))
-                    used_notes = np.zeros((num_bar, 1))
-                else:
-                    used_notes = np.zeros((num_bar, 1))
-
-            
+                used_notes = np.zeros((num_bar, 1)) if num_bar else np.zeros((0, 1))
 
             elif type(pattern[track_num][i]) == midi.events.NoteOnEvent and pattern[track_num][i].data[1] != 0:
-                if 'time_sig' not in locals():  # set default bar length as 4 beat
+                if bar_length is None:  # set default bar length as 4 beat
                     bar_length = 4 * resolution
                     time_sig = [4, 2, 24, 8]
 
                     if num_bar is None:
                         num_bar = int(round(float(pattern[track_num][-1].tick) / bar_length))
-                        used_notes = np.zeros((num_bar, 1))
+                    used_notes = np.zeros((num_bar, 1)) if num_bar else np.zeros((0, 1))
+                    if num_bar:
                         used_notes[pattern[track_num][i].tick // bar_length] += 1
-                    else:
-                        used_notes = np.zeros((num_bar, 1))
-                        used_notes[pattern[track_num][i].tick // bar_length] += 1
-                    note_list = []
-                    note_list.append(pattern[track_num][i].data[0])
 
-                else:
-                    for j in range(0, num_bar):
-                        if 'note_list'in locals():
-                            pass
-                        else:
-                            note_list = []
-                    note_list.append(pattern[track_num][i].data[0])
-                    idx = pattern[track_num][i].tick // bar_length
-                    if idx >= num_bar:
-                      continue
-                    used_notes[idx] += 1
-                    # used_notes[pattern[track_num][i].tick / bar_length] += 1
+                note_list.append(pattern[track_num][i].data[0])
+                if used_notes is None:
+                    used_notes = np.zeros((num_bar, 1)) if num_bar else np.zeros((0, 1))
+                idx = pattern[track_num][i].tick // bar_length
+                if num_bar is None or idx >= num_bar:
+                    continue
+                used_notes[idx] += 1
+                # used_notes[pattern[track_num][i].tick / bar_length] += 1
 
-        used_pitch = np.zeros((num_bar, 1))
+        if used_notes is None:
+            used_notes = np.zeros((num_bar, 1)) if num_bar else np.zeros((0, 1))
+
+        if num_bar is None:
+            num_bar = used_notes.shape[0]
+
+        used_pitch = np.zeros((num_bar, 1)) if num_bar else np.zeros((0, 1))
         current_note = 0
         for i in range(0, num_bar):
-            used_pitch[i] = len(set(note_list[current_note:current_note + int(used_notes[i][0])]))
+            if current_note < len(note_list):
+                used_pitch[i] = len(set(note_list[current_note:current_note + int(used_notes[i][0])]))
+            else:
+                used_pitch[i] = 0
             current_note += int(used_notes[i][0])
 
         return used_pitch
