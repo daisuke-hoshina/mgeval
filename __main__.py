@@ -60,9 +60,10 @@ evalset = {
           , 'note_length_transition_matrix': np.zeros((num_samples, 12, 12))
           }
 
-bar_metrics = ['bar_used_pitch', 'bar_used_note', 'bar_pitch_class_histogram']
+bar_pattern_metrics = ['bar_used_pitch', 'bar_used_note']
+bar_pm_metrics = ['bar_pitch_class_histogram']
 
-for metric in bar_metrics:
+for metric in bar_pattern_metrics + bar_pm_metrics:
     print(args.num_bar)
     if not args.num_bar:
         evalset.pop(metric)
@@ -92,7 +93,9 @@ for _set, _set_eval in sets:
             evaluator = getattr(core.metrics(), metric)
             if metric in single_arg_metrics:
                 tmp = evaluator(feature)
-            elif metric in bar_metrics:
+            elif metric in bar_pattern_metrics:
+                tmp = evaluator(feature, 1, args.num_bar)
+            elif metric in bar_pm_metrics:
                 tmp = evaluator(feature, 0, args.num_bar)
             else:
                 tmp = evaluator(feature, 0)
