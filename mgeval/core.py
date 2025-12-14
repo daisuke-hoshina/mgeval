@@ -427,8 +427,10 @@ class metrics(object):
             return note_length_hist
 
         elif normalize is True:
-
-            return note_length_hist / np.sum(note_length_hist)
+            s = np.sum(note_length_hist)
+            if s == 0:
+                return note_length_hist
+            return note_length_hist / s
 
     def note_length_transition_matrix(self, feature, track_num=1, normalize=0, pause_event=False):
         """
